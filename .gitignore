@@ -2,9 +2,8 @@
 node_modules/
 package-lock.json
 
-# Build files
+# Build output (generated during build)
 retell-sdk-bundle.js
-retell-bundle-entry.js
 
 # Old React app (separate repo)
 restaurant-voice-ordering/
