@@ -86,11 +86,8 @@ app.post('/api/create-web-call', async (req, res) => {
   }
 });
 
-// Catch-all handler: serve index.html for any route not handled by API
-// This must be after all API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Note: No catch-all route needed - express.static will serve all HTML files
+// including index.html, payment-success.html, payment-cancelled.html, etc.
 
 // Start server
 app.listen(PORT, () => {
