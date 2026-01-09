@@ -1,0 +1,472 @@
+# Restaurant Website with Voice Agent Integration - Build Prompt for Claude Code
+
+## Project Overview
+Build a modern restaurant website with integrated Retell AI voice agent ordering system. The site should allow customers to browse the menu while simultaneously placing orders through a voice conversation, with the customer's phone number captured for order confirmation and payment.
+
+## Technical Stack
+- **Frontend**: React with Tailwind CSS
+- **Voice Agent**: Retell AI Web SDK (`retell-client-js-sdk`)
+- **Backend**: Node.js/Express (for secure API key handling)
+- **Data**: Restaurant menu from `restaurant_menu.csv` (85 items with Name and Price)
+
+## Reference Documentation Provided
+1. **Retell Web SDK Guide**: Complete setup instructions for web calls
+2. **Retell Quickstart**: Agent creation and phone number setup guide
+3. **Restaurant Menu CSV**: 85 menu items with names and prices
+
+## Key Requirements
+1. ✅ Phone number input field (required before calling)
+2. ✅ Phone number validation (format: +1XXXXXXXXXX)
+3. ✅ "Call to Order" button (disabled until valid phone number entered)
+4. ✅ Display complete menu from CSV while call is active
+5. ✅ Send phone number in API call metadata
+6. ✅ Show order confirmation when call ends
+7. ✅ Message about payment link being sent to provided number
+
+---
+
+## PHASE 1: Project Setup & Backend API
+
+### Objectives
+- Initialize React project with Retell SDK
+- Create secure backend endpoint for web call creation
+- Set up environment variables for API key management
+
+### Tasks
+1. **Initialize React App**
+   ```bash
+   npx create-react-app restaurant-voice-ordering
+   cd restaurant-voice-ordering
+   npm install retell-client-js-sdk axios
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+   ```
+
+2. **Create Backend Server** (`server/index.js`)
+   - Set up Express server on port 3001
+   - Create `/api/create-web-call` endpoint
+   - Implement POST request to Retell API: `https://api.retellai.com/v2/create-web-call`
+   - **IMPORTANT**: Include customer phone number in metadata field
+   - Use environment variable `RETELL_API_KEY` for authentication
+   - Return access_token to frontend
+   
+   **Backend Requirements:**
+   ```javascript
+   // POST /api/create-web-call
+   // Body: { phoneNumber: string, agentId: string }
+   // Returns: { access_token: string, call_id: string }
+   
+   // API Call to Retell should include:
+   {
+     agent_id: req.body.agentId,
+     metadata: {
+       customer_phone: req.body.phoneNumber
+     }
+   }
+   ```
+
+3. **Environment Setup**
+   - Create `.env` file with:
+     - `RETELL_API_KEY=your_api_key_here`
+     - `RETELL_AGENT_ID=your_agent_id_here`
+   - Add `.env` to `.gitignore`
+   - Create `.env.example` template
+
+**Deliverable**: Working backend that securely creates web calls with phone number in metadata
+
+---
+
+## PHASE 2: Menu Data Processing & Display
+
+### Objectives
+- Parse and display restaurant menu from CSV
+- Create attractive, scrollable menu UI
+- Organize items by category
+
+### Tasks
+1. **Parse Menu CSV**
+   - Copy `restaurant_menu.csv` to `src/data/`
+   - Create utility function to parse CSV into JSON
+   - Auto-categorize items by name patterns:
+     - **Tacos**: Items containing "Taco"
+     - **Burritos**: Items containing "Burrito"
+     - **Sopes**: Items containing "Sope"
+     - **Seafood**: Items containing "Camarón", "Pescado", "Mojarra", "Mar", "Mares"
+     - **Plates**: Items containing "Plato", "Plate"
+     - **Soups**: Items containing "Caldo", "Menudo", "Pozole", "Soup"
+     - **Drinks**: Items containing "Horchata", "Jamaica", "Jugo", "Café", "Coca", "Jarrito"
+     - **Kids Menu**: Items containing "Niño"
+     - **Specialties**: Remaining items
+
+2. **Menu Component Design**
+   - Create `MenuSection` component for each category
+   - Create `MenuItem` component with:
+     - Item name (large, bold)
+     - Price (formatted as currency: $XX.XX)
+     - Clean, appetizing layout with hover effects
+   - Make menu scrollable (max-height with overflow)
+   - Use Tailwind CSS for styling:
+     - Warm color scheme (browns, oranges, reds)
+     - Card-based layout
+     - Responsive grid (1 column mobile, 2-3 desktop)
+
+3. **Header Section**
+   - Restaurant name/logo area
+   - Brief tagline or description
+   - Prominent placement for call controls (next phase)
+
+**Deliverable**: Beautiful, scrollable menu displaying all 85 items organized by category
+
+---
+
+## PHASE 3: Phone Number Input & Validation
+
+### Objectives
+- Create phone number input with validation
+- Implement US/international phone format support
+- Provide clear user feedback
+
+### Tasks
+1. **Phone Input Component**
+   - Create dedicated `PhoneInput` component
+   - Features:
+     - Auto-format as user types (+1 XXX-XXX-XXXX)
+     - Clear visual feedback (green border when valid, red when invalid)
+     - Helper text: "Enter your phone number to receive order confirmation"
+     - Country code dropdown (default: +1 USA)
+
+2. **Validation Logic**
+   - Validate phone number format: `+1` followed by 10 digits
+   - Check for minimum 10 digits after country code
+   - Implement real-time validation (on blur and on change)
+   - Use library like `libphonenumber-js` for robust validation:
+     ```bash
+     npm install libphonenumber-js
+     ```
+
+3. **State Management**
+   - Store phone number in component state
+   - Track validation status (valid/invalid/pristine)
+   - Pass validated phone number to parent component
+   - Disable call button until phone number is valid
+
+**Deliverable**: Fully validated phone number input that gates the call functionality
+
+---
+
+## PHASE 4: Retell Web Call Integration
+
+### Objectives
+- Integrate Retell Web SDK
+- Implement call lifecycle management
+- Handle all SDK events properly
+
+### Tasks
+1. **Initialize Retell Client**
+   - Import and instantiate `RetellWebClient`
+   - Set up in useEffect hook
+   - Configure with optimal settings:
+     ```javascript
+     const retellWebClient = new RetellWebClient();
+     ```
+
+2. **Create "Call to Order" Button**
+   - Large, prominent button above menu
+   - States:
+     - Disabled (gray): Phone number not entered/invalid
+     - Ready (green): "📞 Call to Order" - phone number valid
+     - Calling (blue): "📞 On Call..." - call in progress
+     - Ending (gray): "Ending call..." - call wrapping up
+   - Loading spinner during call initiation
+
+3. **Implement Call Flow**
+   
+   **Start Call:**
+   ```javascript
+   const startCall = async () => {
+     // 1. Call backend to get access token
+     const response = await axios.post('/api/create-web-call', {
+       phoneNumber: validatedPhoneNumber,
+       agentId: RETELL_AGENT_ID
+     });
+     
+     // 2. Start call with Retell SDK
+     await retellWebClient.startCall({
+       accessToken: response.data.access_token,
+       sampleRate: 24000,
+       emitRawAudioSamples: false
+     });
+   };
+   ```
+
+   **Stop Call:**
+   ```javascript
+   const stopCall = () => {
+     retellWebClient.stopCall();
+   };
+   ```
+
+4. **Event Listeners**
+   Implement all SDK event handlers per documentation:
+
+   ```javascript
+   useEffect(() => {
+     // Call started
+     retellWebClient.on("call_started", () => {
+       setCallStatus("active");
+       console.log("Call started successfully");
+     });
+
+     // Call ended
+     retellWebClient.on("call_ended", () => {
+       setCallStatus("ended");
+       setShowConfirmation(true);
+     });
+
+     // Agent speaking (for UI feedback)
+     retellWebClient.on("agent_start_talking", () => {
+       setAgentSpeaking(true);
+     });
+
+     retellWebClient.on("agent_stop_talking", () => {
+       setAgentSpeaking(false);
+     });
+
+     // Real-time updates
+     retellWebClient.on("update", (update) => {
+       // Optional: Display transcript
+       console.log("Transcript:", update.transcript);
+     });
+
+     // Error handling
+     retellWebClient.on("error", (error) => {
+       console.error("Call error:", error);
+       setCallStatus("error");
+       retellWebClient.stopCall();
+     });
+
+     // Cleanup
+     return () => {
+       retellWebClient.stopCall();
+     };
+   }, []);
+   ```
+
+5. **Call Status UI**
+   - Show visual indicator when agent is speaking (pulsing mic icon)
+   - Display connection status
+   - Optional: Show live transcript below menu
+   - Ensure menu remains scrollable during call
+
+**Deliverable**: Fully functional voice calling system integrated with menu display
+
+---
+
+## PHASE 5: Order Confirmation & Final Polish
+
+### Objectives
+- Display order confirmation after call ends
+- Add visual polish and error handling
+- Ensure seamless user experience
+
+### Tasks
+1. **Confirmation Modal/Screen**
+   - Trigger when `call_ended` event fires
+   - Display:
+     - ✅ Success icon
+     - "Order Placed Successfully!"
+     - "A payment link has been sent to [phone number]"
+     - "Check your messages to complete payment"
+     - "Thank you for your order!"
+   - "Place Another Order" button (resets app state)
+
+2. **Error Handling**
+   - Network errors during call creation
+   - Microphone permission denied
+   - Call disconnection issues
+   - Display user-friendly error messages with retry options
+
+3. **Visual Enhancements**
+   - Add loading states with spinners
+   - Smooth transitions between states
+   - Animate confirmation appearance
+   - Add Mexican restaurant themed colors/imagery
+   - Responsive design (mobile-first)
+   - Accessibility: ARIA labels, keyboard navigation
+
+4. **Testing Checklist**
+   - ✅ Phone validation works correctly
+   - ✅ Call button disabled without valid phone
+   - ✅ Backend receives phone in metadata
+   - ✅ Call connects successfully
+   - ✅ Menu scrolls during call
+   - ✅ Confirmation shows after call ends
+   - ✅ Error states display properly
+   - ✅ Works on mobile devices
+   - ✅ Microphone permissions handled
+
+**Deliverable**: Production-ready restaurant ordering website
+
+---
+
+## PHASE 6: Documentation & Deployment Prep
+
+### Objectives
+- Document setup and configuration
+- Prepare for deployment
+- Create deployment guide
+
+### Tasks
+1. **README.md**
+   - Installation instructions
+   - Environment variable setup
+   - How to obtain Retell API key and Agent ID
+   - How to run locally (frontend + backend)
+   - How to test the voice agent
+
+2. **Configuration Guide**
+   - How to update menu items (CSV format)
+   - How to customize restaurant branding
+   - How to configure different Retell agents
+
+3. **Deployment Checklist**
+   - Build frontend: `npm run build`
+   - Deploy backend (Heroku, Railway, or Vercel)
+   - Deploy frontend (Vercel, Netlify)
+   - Set environment variables in production
+   - Test production build
+   - Set up custom domain (optional)
+
+**Deliverable**: Complete documentation for future maintenance and deployment
+
+---
+
+## Important Implementation Notes
+
+### Security Considerations
+- **NEVER expose Retell API key in frontend**
+- All Retell API calls MUST go through backend
+- Validate phone numbers on both client and server
+- Implement rate limiting on backend endpoint
+- Use HTTPS in production
+
+### Retell API Call Structure
+When creating web call, the backend should make this request:
+
+```javascript
+POST https://api.retellai.com/v2/create-web-call
+Headers: {
+  "Authorization": "Bearer YOUR_RETELL_API_KEY",
+  "Content-Type": "application/json"
+}
+Body: {
+  "agent_id": "your_agent_id",
+  "metadata": {
+    "customer_phone": "+11234567890",
+    "order_source": "web_voice_ordering",
+    "timestamp": "2024-12-09T10:30:00Z"
+  }
+}
+```
+
+### SDK Installation Reminder
+```bash
+npm install retell-client-js-sdk
+```
+
+### Menu CSV Format
+The provided CSV has this structure:
+```
+Name,Price
+Birria Combo,28.07
+Plato Birra,24.95
+...
+```
+Keep this format for easy updates.
+
+---
+
+## Expected File Structure
+
+```
+restaurant-voice-ordering/
+├── server/
+│   ├── index.js                 # Express backend
+│   └── package.json
+├── src/
+│   ├── components/
+│   │   ├── PhoneInput.jsx       # Phone number input
+│   │   ├── CallButton.jsx       # Call control button
+│   │   ├── Menu.jsx             # Full menu display
+│   │   ├── MenuItem.jsx         # Individual menu item
+│   │   ├── MenuSection.jsx      # Category section
+│   │   └── OrderConfirmation.jsx # Success modal
+│   ├── data/
+│   │   └── restaurant_menu.csv  # Menu data
+│   ├── utils/
+│   │   ├── menuParser.js        # CSV parsing
+│   │   └── phoneValidator.js    # Phone validation
+│   ├── hooks/
+│   │   └── useRetellCall.js     # Retell SDK hook
+│   ├── App.jsx                  # Main app component
+│   └── index.js
+├── .env.example
+├── .env                          # Git ignored
+├── .gitignore
+├── package.json
+└── README.md
+```
+
+---
+
+## Success Criteria
+
+The project is complete when:
+1. ✅ User can enter phone number with validation
+2. ✅ Call button is gated by phone validation
+3. ✅ Voice call connects successfully via Retell
+4. ✅ Phone number is sent in API metadata
+5. ✅ Menu displays all 85 items organized by category
+6. ✅ Menu is scrollable during active call
+7. ✅ Order confirmation shows after call ends
+8. ✅ All error states are handled gracefully
+9. ✅ UI is responsive and visually appealing
+10. ✅ Backend securely handles API keys
+
+---
+
+## Quick Start Command Summary
+
+```bash
+# Phase 1: Setup
+npx create-react-app restaurant-voice-ordering
+cd restaurant-voice-ordering
+npm install retell-client-js-sdk axios libphonenumber-js
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
+# Create backend
+mkdir server && cd server
+npm init -y
+npm install express cors dotenv axios
+cd ..
+
+# Run development
+# Terminal 1: Backend
+cd server && node index.js
+
+# Terminal 2: Frontend
+npm start
+```
+
+---
+
+## Additional Resources
+- Retell AI Dashboard: https://dashboard.retellai.com
+- Retell API Docs: https://docs.retellai.com
+- Web SDK Reference: Provided in documents
+- Phone Number Validation: https://www.npmjs.com/package/libphonenumber-js
+
+---
+
+**Build this systematically phase by phase, testing each phase thoroughly before moving to the next. Focus on creating a production-ready, user-friendly experience that makes ordering via voice natural and seamless.**

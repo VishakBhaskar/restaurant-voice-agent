@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build files
+retell-sdk-bundle.js
+retell-bundle-entry.js
+
+# Old React app (separate repo)
+restaurant-voice-ordering/
+
+# Temporary files
+nul
+*.log
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Environment variables (if you add them later)
+.env
+.env.local
+
+# System files
+.DS_Store
+Thumbs.db

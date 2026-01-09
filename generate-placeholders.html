@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Placeholder Generator - Birrieria Chalio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .image-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba240 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder.circular {
+            border-radius: 50%;
+            height: 150px;
+        }
+
+        .image-placeholder canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .image-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .image-filename {
+            font-family: 'Courier New', monospace;
+            background: #edf2f7;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+
+        .image-dimensions {
+            color: #718096;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .actions {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f7fafc;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .actions h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+
+        .alert {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 6px;
+            color: #742a2a;
+        }
+
+        .alert-info {
+            background: #ebf8ff;
+            border-left-color: #4299e1;
+            color: #2c5282;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌮 Birrieria Chalio - Image Generator</h1>
+        <p class="subtitle">Generate placeholder images or track your AI image generation progress</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalImages">24</div>
+                <div class="stat-label">Total Images Needed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="menuItems">20</div>
+                <div class="stat-label">Menu Item Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="icons">3</div>
+                <div class="stat-label">Category Icons</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="hero">1</div>
+                <div class="stat-label">Hero Background</div>
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>📖 Quick Start:</strong> This tool helps you visualize all images needed for the website. Click "Generate Placeholder" to create temporary images for testing, or use the AI prompts from <code>IMAGE-GENERATION-GUIDE.md</code> to create professional food photography.
+        </div>
+
+        <!-- Hero Background -->
+        <div class="section">
+            <h2 class="section-title">Hero Background</h2>
+            <div class="image-grid">
+                <div class="image-card">
+                    <div class="image-placeholder" id="hero-bg">
+                        <canvas></canvas>
+                    </div>
+                    <div class="image-name">Hero Background</div>
+                    <div class="image-filename">images/hero-bg.jpg</div>
+                    <div class="image-dimensions">📏 1920x1080px (Landscape)</div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlaceholder('hero-bg', 1920, 1080, false)">Generate Placeholder</button>
+                        <button class="btn btn-success" onclick="downloadImage('hero-bg')">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Icons -->
+        <div class="section">
+            <h2 class="section-title">Category Icons</h2>
+            <div class="image-grid">
+                <div class="image-card">
+                    <div class="image-placeholder circular" id="birria-icon">
+                        <canvas></canvas>
+                    </div>
+                    <div class="image-name">Birria Icon</div>
+                    <div class="image-filename">images/birria-icon.jpg</div>
+                    <div class="image-dimensions">📏 200x200px (Circular)</div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlaceholder('birria-icon', 200, 200, true)">Generate Placeholder</button>
+                        <button class="btn btn-success" onclick="downloadImage('birria-icon')">Download</button>
+                    </div>
+                </div>
+                <div class="image-card">
+                    <div class="image-placeholder circular" id="taco-icon">
+                        <canvas></canvas>
+                    </div>
+                    <div class="image-name">Taco Icon</div>
+                    <div class="image-filename">images/taco-icon.jpg</div>
+                    <div class="image-dimensions">📏 200x200px (Circular)</div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlaceholder('taco-icon', 200, 200, true)">Generate Placeholder</button>
+                        <button class="btn btn-success" onclick="downloadImage('taco-icon')">Download</button>
+                    </div>
+                </div>
+                <div class="image-card">
+                    <div class="image-placeholder circular" id="kids-icon">
+                        <canvas></canvas>
+                    </div>
+                    <div class="image-name">Kids Icon</div>
+                    <div class="image-filename">images/kids-icon.jpg</div>
+                    <div class="image-dimensions">📏 200x200px (Circular)</div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlaceholder('kids-icon', 200, 200, true)">Generate Placeholder</button>
+                        <button class="btn btn-success" onclick="downloadImage('kids-icon')">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signature Birria -->
+        <div class="section">
+            <h2 class="section-title">Signature Birria Items</h2>
+            <div class="image-grid" id="birria-items"></div>
+        </div>
+
+        <!-- Tacos -->
+        <div class="section">
+            <h2 class="section-title">Tacos</h2>
+            <div class="image-grid" id="taco-items"></div>
+        </div>
+
+        <!-- Kids Menu -->
+        <div class="section">
+            <h2 class="section-title">Kids Menu</h2>
+            <div class="image-grid" id="kids-items"></div>
+        </div>
+
+        <div class="actions">
+            <h3>🚀 Ready to Generate All Placeholders?</h3>
+            <p style="color: #718096; margin-bottom: 1.5rem;">Click below to generate all placeholder images at once for testing your layout</p>
+            <button class="download-btn" onclick="generateAllPlaceholders()">Generate All Placeholders</button>
+        </div>
+    </div>
+
+    <script>
+        const menuItems = {
+            birria: [
+                { name: 'Birria Combo', filename: 'birria-combo.jpg' },
+                { name: 'Plato Birra', filename: 'plato-birra.jpg' },
+                { name: 'Birria by the Pound', filename: 'birria-pound.jpg' },
+                { name: 'Consomé Birra', filename: 'consome-birra.jpg' }
+            ],
+            tacos: [
+                { name: 'Taco Birria', filename: 'taco-birria.jpg' },
+                { name: 'Taco Asado', filename: 'taco-asado.jpg' },
+                { name: 'Taco Carnitas', filename: 'taco-carnitas.jpg' },
+                { name: 'Taco Al Pastor', filename: 'taco-pastor.jpg' },
+                { name: 'Taco Pollo', filename: 'taco-pollo.jpg' },
+                { name: 'Taco Barbacoa', filename: 'taco-barbacoa.jpg' },
+                { name: 'Taco Cabeza', filename: 'taco-cabeza.jpg' },
+                { name: 'Taco Chicharron', filename: 'taco-chicharron.jpg' },
+                { name: 'Taco Nopal', filename: 'taco-nopal.jpg' }
+            ],
+            kids: [
+                { name: 'Niño Chicken Fingers', filename: 'nino-chicken.jpg' },
+                { name: 'Niño Cheese Enchilada', filename: 'nino-enchilada.jpg' }
+            ]
+        };
+
+        function createItemCard(item, containerId) {
+            const id = item.filename.replace('.jpg', '');
+            const card = `
+                <div class="image-card">
+                    <div class="image-placeholder" id="${id}">
+                        <canvas></canvas>
+                    </div>
+                    <div class="image-name">${item.name}</div>
+                    <div class="image-filename">images/${item.filename}</div>
+                    <div class="image-dimensions">📏 800x800px (Square)</div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="generatePlaceholder('${id}', 800, 800, false)">Generate Placeholder</button>
+                        <button class="btn btn-success" onclick="downloadImage('${id}')">Download</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById(containerId).innerHTML += card;
+        }
+
+        // Populate menu items
+        menuItems.birria.forEach(item => createItemCard(item, 'birria-items'));
+        menuItems.tacos.forEach(item => createItemCard(item, 'taco-items'));
+        menuItems.kids.forEach(item => createItemCard(item, 'kids-items'));
+
+        function generatePlaceholder(id, width, height, isCircular) {
+            const container = document.getElementById(id);
+            const canvas = container.querySelector('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#D4AF37');
+            gradient.addColorStop(1, '#8B7355');
+            ctx.fillStyle = gradient;
+
+            if (isCircular) {
+                ctx.beginPath();
+                ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(0, 0, width, height);
+            }
+
+            // Add text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold ' + (width / 15) + 'px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const text = id.split('-').map(word =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+
+            ctx.fillText(text, width / 2, height / 2);
+
+            // Add dimensions
+            ctx.font = (width / 25) + 'px Arial';
+            ctx.fillText(`${width}x${height}`, width / 2, height / 2 + (height / 8));
+        }
+
+        function downloadImage(id) {
+            const container = document.getElementById(id);
+            const canvas = container.querySelector('canvas');
+            const link = document.createElement('a');
+            link.download = id + '.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        function generateAllPlaceholders() {
+            // Generate hero
+            generatePlaceholder('hero-bg', 1920, 1080, false);
+
+            // Generate icons
+            generatePlaceholder('birria-icon', 200, 200, true);
+            generatePlaceholder('taco-icon', 200, 200, true);
+            generatePlaceholder('kids-icon', 200, 200, true);
+
+            // Generate all menu items
+            [...menuItems.birria, ...menuItems.tacos, ...menuItems.kids].forEach(item => {
+                const id = item.filename.replace('.jpg', '');
+                generatePlaceholder(id, 800, 800, false);
+            });
+
+            alert('✅ All placeholders generated! You can now download them individually or view the website.');
+        }
+
+        // Auto-generate all on load for preview
+        window.addEventListener('load', () => {
+            setTimeout(generateAllPlaceholders, 500);
+        });
+    </script>
+</body>
+</html>

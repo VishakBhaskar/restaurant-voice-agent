@@ -1,0 +1,17 @@
+{
+  "name": "restaurant-site",
+  "version": "1.0.0",
+  "description": "A beautiful, fully responsive single-page website for Birrieria Chalio, an authentic Mexican restaurant specializing in traditional birria and Mexican cuisine.",
+  "main": "retell-sdk.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "esbuild": "^0.27.2",
+    "retell-client-js-sdk": "^2.0.7"
+  }
+}
