@@ -7,7 +7,11 @@ let currentCallStatus = 'idle';
 
 // Configuration
 const RETELL_AGENT_ID = 'agent_b1ff418ce04f180fa2835296e0'; // Your agent ID
-const BACKEND_URL = 'http://localhost:3001'; // Backend server URL
+
+// Detect if running in production or local
+const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001' // Local development
+    : 'https://YOUR_BACKEND_URL_HERE'; // Production backend - REPLACE THIS!
 
 // Initialize Retell Web Client
 function initializeRetellClient() {
