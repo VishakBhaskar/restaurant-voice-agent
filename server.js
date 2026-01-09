@@ -24,6 +24,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Restaurant ordering backend is running' });
 });
 
+// Payment page routes (handle both with and without .html extension)
+app.get('/payment-success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'payment-success.html'));
+});
+
+app.get('/payment-cancelled', (req, res) => {
+  res.sendFile(path.join(__dirname, 'payment-cancelled.html'));
+});
+
 // Create Retell web call endpoint
 app.post('/api/create-web-call', async (req, res) => {
   try {
