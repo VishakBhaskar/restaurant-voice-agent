@@ -4,7 +4,7 @@
   "description": "A beautiful, fully responsive single-page website for Birrieria Chalio, an authentic Mexican restaurant specializing in traditional birria and Mexican cuisine.",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve -s . -l $PORT",
+    "start": "npx serve . -l $PORT",
     "build": "npx esbuild retell-bundle-entry.js --bundle --format=iife --outfile=retell-sdk-bundle.js --global-name=RetellSDK"
   },
   "keywords": [],
