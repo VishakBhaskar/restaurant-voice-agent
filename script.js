@@ -5,9 +5,6 @@
 let retellWebClient = null;
 let currentCallStatus = 'idle';
 
-// Configuration
-const RETELL_AGENT_ID = 'agent_b1ff418ce04f180fa2835296e0'; // Your agent ID
-
 // Detect if running in production or local
 const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3001' // Local development
@@ -147,8 +144,7 @@ async function startVoiceCall() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                phoneNumber: `+1${phone}`,
-                agentId: RETELL_AGENT_ID
+                phoneNumber: `+1${phone}`
             })
         });
 
